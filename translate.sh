@@ -1,11 +1,10 @@
 #!/bin/bash
 
 CSV_FILE=$1 #target csv 
-#CSV_FILE="./ObjectData - Sheet1.csv"
 API_KEY=$2 #Yandex cloud API_KEY
 FOLDER_ID=$3 #Yandex cloud FOLDER_ID
-SOURCE_LANG=${4:-"en"}
-TARGET_COLUMN=${5:-1} #target column number into CSV_FILE
+TARGET_COLUMN=${4:-1} #target column number into CSV_FILE
+SOURCE_LANG=${5:-"en"}
 TARGET_LANG="ru"
 TRANSLATE_URL="https://translate.api.cloud.yandex.net/translate/v2/translate"
 
@@ -66,7 +65,7 @@ do
   fi
 done < "$CSV_FILE"
 
-echo ${texts[394]}
+echo ${texts[1]}
 # Преобразование массива в JSON (с удалением \r)
 #texts_json=$(printf '%s\n' "${texts[@]}" | tr -d '\r' | jq -R . | jq -s .)
 
