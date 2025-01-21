@@ -103,6 +103,6 @@ echo
   #echo "Sub Arr $i: ${subarrays[$i]}"
   #echo "Sub Array $i length: ${#subarrays[$i]}"
 #done
-read TRANSL < <(transliterate "Товарищь майор, любит выпить водку и трахнуть красивую сотрудницу") 
-echo $TRANSL
+#read TRANSL < <(transliterate "Товарищь майор, любит выпить водку и трахнуть красивую задницу") 
+#echo $TRANSL
 
