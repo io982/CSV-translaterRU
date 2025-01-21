@@ -13,23 +13,18 @@ if [ ! -f "$CSV_FILE" ]; then
   exit 1
 fi
 
-# Функция для транслитерации
 transliterate() {
-  local input="$1"
-  declare -A translit_table=(
-    ["а"]="a" ["б"]="b" ["в"]="v" ["г"]="g" ["д"]="d"
-    ["е"]="e" ["ё"]="yo" ["ж"]="zh" ["з"]="z" ["и"]="i"
-    ["й"]="y" ["к"]="k" ["л"]="l" ["м"]="m" ["н"]="n"
-    ["о"]="o" ["п"]="p" ["р"]="r" ["с"]="s" ["т"]="t"
-    ["у"]="u" ["ф"]="f" ["х"]="kh" ["ц"]="ts" ["ч"]="ch"
-    ["ш"]="sh" ["щ"]="shch" ["ъ"]="" ["ы"]="y" ["ь"]=""
-    ["э"]="e" ["ю"]="yu" ["я"]="ya"
-  )
-  for cyr in "${!translit_table[@]}"; do
-    local lat="${translit_table[$cyr]}"
-    input=$(echo "$input" | sed "s/$cyr/$lat/g")
-  done
-  echo "$input"
+  echo "$1" | sed 'y/абвгдеёжзийклмнопрстуфхцчшщъыьэюя/abvgdeejzijklmnoprstufhzcss_y_eua/'
+}
+
+#прогрессбар
+total_elements=0
+current_element=0
+
+progressBar() {
+  ((current_element++))
+  progress=$((current_element * 100 / total_elements)) 
+  printf "\rCreating JSON arrays: [%-10s] %d%%" "$(printf '#%.0s' $(seq 1 $((progress / 10))))" "$progress" 
 }
 
 #создание массива строк с описанием description из csv файла
@@ -65,11 +60,49 @@ do
   fi
 done < "$CSV_FILE"
 
-echo ${texts[1]}
-# Преобразование массива в JSON (с удалением \r)
-#texts_json=$(printf '%s\n' "${texts[@]}" | tr -d '\r' | jq -R . | jq -s .)
+subarrays=()  # Массив для хранения подмассивов
+current_array=()  # Текущий подмассив
+current_length=0  # Длина текущего подмассива в JSON
 
+#для прогрессбар
+total_elements=${#texts[@]}
+current_element=0
 
+for element in "${texts[@]}"; do  
 
+  # Преобразуем текущий элемент в JSON
+  element_json=$(echo -n "$element" | jq -R .)
 
+  # Предполагаемая длина нового подмассива, если добавить текущий элемент
+  new_length=$((current_length + ${#element_json} + 1))  # +1 для запятой
+
+  # Если добавление элемента превышает лимит, сохраняем текущий подмассив и начинаем новый
+  if [ "$new_length" -ge 9000 ]; then
+    subarrays+=("$(printf '%s\n' "${current_array[@]}" | jq -R . | jq -s .)")
+    current_array=()
+    new_length=${#element_json}
+  fi
+
+  # Добавляем элемент в текущий подмассив
+  current_array+=("$element")
+  current_length=$new_length
+
+  progressBar
+done
+
+# Добавляем последний подмассив, если он не пустой
+if [ "${#current_array[@]}" -gt 0 ]; then
+  subarrays+=("$(printf '%s\n' "${current_array[@]}" | jq -R . | jq -s .)")
+fi
+echo
+
+#tests
+#echo ""
+# Выводим результат
+#for i in "${!subarrays[@]}"; do
+  #echo "Sub Arr $i: ${subarrays[$i]}"
+  #echo "Sub Array $i length: ${#subarrays[$i]}"
+#done
+#read TRANSL < <(transliterate "Товарищь майор, любит выпить водку и трахнуть красивую сотрудницу") 
+#echo $TRANSL
 
