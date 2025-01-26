@@ -14,7 +14,7 @@ if [ ! -f "$CSV_FILE" ]; then
 fi
 
 transliterate() {
-  echo "$1" | sed 'y/абвгдеёжзийклмнопрстуфхцчшщъыьэюя/abvgdeejzijklmnoprstufhzcss_y_eua/'
+  echo "$1" | sed 'y/АБВГДЕЁЖЗИЙКЛМНОПРСТУФХЦЧШЩЪЫЬЭЮЯабвгдеёжзийклмнопрстуфхцчшщъыьэюя/ABVGDEEJZIIKLMNOPRSTUFHZCSS_Y_EUAabvgdeejzijklmnoprstufhzcss_y_eua/'
 }
 
 #прогрессбар
@@ -24,7 +24,7 @@ current_element=0
 progressBar() {
   ((current_element++))
   progress=$((current_element * 100 / total_elements)) 
-  printf "\rCreating JSON arrays: [%-10s] %d%%" "$(printf '#%.0s' $(seq 1 $((progress / 10))))" "$progress" 
+  printf "\r$1: [%-10s] %d%%" "$(printf '#%.0s' $(seq 1 $((progress / 10))))" "$progress" 
 }
 
 #создание массива строк с описанием description из csv файла
@@ -87,17 +87,59 @@ for element in "${texts[@]}"; do
   current_array+=("$element")
   current_length=$new_length
 
-  progressBar
+  progressBar "Creating JSON arrays"
 done
 
 # Добавляем последний подмассив, если он не пустой
 if [ "${#current_array[@]}" -gt 0 ]; then
   subarrays+=("$(printf '%s\n' "${current_array[@]}" | jq -R . | jq -s .)")
 fi
+
+echo
+
+#для прогрессбар
+total_elements=${#subarrays[@]}
+current_element=0
+
+allTranslations=()
+# Отправка запроса на перевод
+for i in "${!subarrays[@]}"; do
+response=$(curl -s -X POST \
+  -H "Authorization: Api-Key ${API_KEY}" \
+  -H "Content-Type: application/json" \
+  -d "{
+    \"folderId\": \"${FOLDER_ID}\",
+    \"texts\": ${subarrays[$i]},
+   \"targetLanguageCode\": \"${TARGET_LANG}\",
+   \"sourceLanguageCode\": \"${SOURCE_LANG}\"
+ }" \
+ ${TRANSLATE_URL})
+
+if echo "$response" | jq -e '.translations != null' > /dev/null; then
+  # Извлечение всех переведенных текстов
+  allTranslations+=$(echo "$response" | jq -r '.translations[]?.text') 
+else
+ # Вывод ошибки
+  error_message=$(echo "$response" | jq -r '.message')
+  echo "Ошибка: ${error_message}"
+fi
+progressBar "Translating"
+done
+
 echo
 
 #tests
-#echo ""
+
+for i in "${!allTranslations[@]}"; do
+  j=1
+  echo "${allTranslations[$i]}" | while read -r translated_text; do
+  #echo $translated_text
+  read TRANSL < <(transliterate "$translated_text") 
+  echo $TRANSL
+  j=$((j + 1))
+  done
+done
+
 # Выводим результат
 #for i in "${!subarrays[@]}"; do
   #echo "Sub Arr $i: ${subarrays[$i]}"
