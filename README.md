@@ -10,7 +10,7 @@ translate.sh ...arguments
 **$2** <= yandex_cloud_API_KEY\
 **$3** <= yandex_cloud_FOLDER_ID\
 **$4** <= column_number (default 1)\
-**$5** <= original_language (default "en")\
+**$5** <= original_language (default "en")
 
 **Output:** taranslate_DDMMYY.csv
 
