@@ -22,7 +22,7 @@ translate.sh ...arguments
 
 ### Attention!
 
-when using a script with the necessary funds from your payment account in the Yandex cloud
+<span style="color: red;">when using a script with the necessary funds from your payment account in the Yandex cloud</span>
 
 ### Useful
 
