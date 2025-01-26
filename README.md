@@ -12,7 +12,7 @@ translate.sh ...arguments
 **$4** <= column_number (default 1)\
 **$5** <= original_language (default "en")
 
-**Output:** taranslate_DDMMYY.csv
+**Output:** taranslate_DDMMYY.csv (...in process)
 
 ### Example
 
@@ -22,7 +22,7 @@ translate.sh ...arguments
 
 ### Attention!
 
-<span style="color: red">when using a script with the necessary funds from your payment account in the Yandex cloud</span>
+when using a script with the necessary funds from your payment account in the Yandex cloud
 
 ### Useful
 
