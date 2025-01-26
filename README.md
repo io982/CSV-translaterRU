@@ -23,3 +23,8 @@ translate.sh ...arguments
 ### Attention!
 
 when using a script with the necessary funds from your payment account in the Yandex cloud
+
+### Useful
+
+<https://yandex.cloud/ru/docs/translate/operations/sa-api-key>\
+<https://yandex.cloud/ru/docs/translate/quickstart>
