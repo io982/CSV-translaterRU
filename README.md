@@ -6,11 +6,11 @@ bash script that translate target column. Used Yandex cloud
 
 translate.sh ...arguments
 
-$1 <= target_csv_file
-$2 <= yandex_cloud_API_KEY
-$3 <= yandex_cloud_FOLDER_ID
-$4 <= column_number (default 1)
-$5 <= original_language (default "en")
+$1 <= target_csv_file\
+$2 <= yandex_cloud_API_KEY\
+$3 <= yandex_cloud_FOLDER_ID\
+$4 <= column_number (default 1)\
+$5 <= original_language (default "en")\
 
 ### Example
 
