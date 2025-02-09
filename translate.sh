@@ -103,48 +103,61 @@ current_element=0
 
 allTranslations=()
 # Отправка запроса на перевод
-for i in "${!subarrays[@]}"; do
-response=$(curl -s -X POST \
-  -H "Authorization: Api-Key ${API_KEY}" \
-  -H "Content-Type: application/json" \
-  -d "{
-    \"folderId\": \"${FOLDER_ID}\",
-    \"texts\": ${subarrays[$i]},
-   \"targetLanguageCode\": \"${TARGET_LANG}\",
-   \"sourceLanguageCode\": \"${SOURCE_LANG}\"
- }" \
- ${TRANSLATE_URL})
+  for i in "${!subarrays[@]}"; do
+    response=$(curl -s -X POST \
+      -H "Authorization: Api-Key ${API_KEY}" \
+      -H "Content-Type: application/json" \
+      -d "{
+        \"folderId\": \"${FOLDER_ID}\",
+        \"texts\": ${subarrays[$i]},
+        \"targetLanguageCode\": \"${TARGET_LANG}\",
+        \"sourceLanguageCode\": \"${SOURCE_LANG}\"
+      }" \
+    ${TRANSLATE_URL})
 
-if echo "$response" | jq -e '.translations != null' > /dev/null; then
-  # Извлечение всех переведенных текстов
-  allTranslations+=$(echo "$response" | jq -r '.translations[]?.text') 
-else
- # Вывод ошибки
-  error_message=$(echo "$response" | jq -r '.message')
-  echo "Ошибка: ${error_message}"
-fi
-progressBar "Translating"
-done
+    if echo "$response" | jq -e '.translations != null' > /dev/null; then
+      # Извлечение всех переведенных текстов
+      allTranslations+=$(echo "$response" | jq -r '.translations[]?.text')
+    else
+    # Вывод ошибки
+      error_message=$(echo "$response" | jq -r '.message')
+      echo "Ошибка: ${error_message}"
+    fi
+    progressBar "Translating"
+  done
 
 echo
 
-#tests
-
-for i in "${!allTranslations[@]}"; do
-  j=1
-  echo "${allTranslations[$i]}" | while read -r translated_text; do
-  #echo $translated_text
-  read TRANSL < <(transliterate "$translated_text") 
-  echo $TRANSL
-  j=$((j + 1))
-  done
+replacements=()
+for i in "${!allTranslations[@]}"; do  
+  while read -r translated_text; do
+    TRANSL=$(transliterate "$translated_text")
+    replacements+=("$TRANSL")    
+  done <<< "${allTranslations[$i]}"
 done
 
-# Выводим результат
-#for i in "${!subarrays[@]}"; do
-  #echo "Sub Arr $i: ${subarrays[$i]}"
-  #echo "Sub Array $i length: ${#subarrays[$i]}"
-#done
-#read TRANSL < <(transliterate "Товарищь майор, любит выпить водку и трахнуть красивую задницу") 
-#echo $TRANSL
+current_date=$(date +"%d%m%y")
+output_file="translate_${current_date}.csv"
+touch "$output_file"
 
+pre=$(echo "\$col$result" | sed 's/ /,\$/g')
+counter=-1
+
+#для прогрессбар
+total_elements=$((${#replacements[@]} + 1))
+current_element=0
+
+while IFS=, read -r $cols
+do  
+  if [[ -n $col ]] then  
+    new_els=$(echo $els | sed -E 's/^[^,]+",//g')
+    new_repl=$(echo \"${replacements[$counter]}\" | sed -E 's/^""/"/' | sed -E 's/""$/"/')  
+    echo $(eval echo $pre),$new_repl,$new_els >> "$output_file"
+  else
+    eval echo $(echo $cols | sed 's/ /,\$/g' | sed 's/col,/,/') > "$output_file"
+  fi
+    counter=$((counter + 1))
+  progressBar "Writing into "$output_file
+done < "$CSV_FILE"
+
+echo -e "\ndone"

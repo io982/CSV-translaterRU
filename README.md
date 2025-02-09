@@ -6,13 +6,13 @@ bash script that translate target column of csv-file. Used Yandex cloud
 
 translate.sh ...arguments
 
-**$1** <= target_csv_file\
+**$1** <= target_csv_file (the first column in the csv file should not have a title)\
 **$2** <= yandex_cloud_API_KEY\
 **$3** <= yandex_cloud_FOLDER_ID\
 **$4** <= column_number (default 1)\
 **$5** <= original_language (default "en")
 
-**Output:** taranslate_DDMMYY.csv (...in process)
+**Output:** taranslate_DDMMYY.csv
 
 ### Example
 
